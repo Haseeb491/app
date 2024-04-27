@@ -1,5 +1,5 @@
 'use client';
-import { AgencySidebarOption, SubAccount, SubAccountSidebarOption } from '@prisma/client'
+import { Agency, AgencySidebarOption, SubAccount, SubAccountSidebarOption } from '@prisma/client'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
@@ -10,6 +10,9 @@ import Image from 'next/image';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command';
 import Link from 'next/link';
+import { useModal } from '@/providers/modal-provider';
+import CustomModal from '../global/custom-modal';
+import SubAccountDetails from '../forms/subaccount-details';
 
 type Props = {
     defaultOpen?: boolean
@@ -33,6 +36,7 @@ const MenuOptions = (
     }
     : Props) => {
 
+      const {setOpen} = useModal();
       const [isMounted,setIsMounted] = useState(false);
 
       const openState = useMemo(()=>
@@ -207,10 +211,28 @@ const MenuOptions = (
                   </CommandList>
                   {(user?.role === 'AGENCY_OWNER' ||
                     user?.role === 'AGENCY_ADMIN') && (
-                      <Button className='w-full flex gap-2' >
+                      <SheetClose>
+                      <Button className='w-full flex gap-2'
+                        onClick={()=>{
+                          setOpen(
+                            <CustomModal
+                            title='create a sub account'
+                            subheading='You can switch between your agency
+                            and subaccount from the sidebar'
+                            >
+                              <SubAccountDetails
+                                agencyDetails={user?.agency as Agency}
+                                userId={user?.id as string}
+                                userName={user?.name}
+                              />
+                            </CustomModal>
+                          )
+                        }}
+                      >
                         <PlusCircleIcon size={15} />
                         Create Sub Account
                       </Button>
+                      </SheetClose>
                     )   
                     }
                 </Command>

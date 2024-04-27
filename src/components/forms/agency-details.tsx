@@ -128,28 +128,27 @@ const AgencyDetails = ({data} : Props) => {
       }
     }
     const handleDeleteAgency = async () => {
-      if (!data?.id) {
-        setDeletingAgency(true);
-        //WIP : discontinue the subscription
-        try {
-          const response = await deleteAgency(data.id);
-          toast({
-            title : 'Deleted agency',
-            description: 'deleted the agency and all the associated subaccounts!'
-          })
-          router.refresh();
-        } catch (error) {
-          console.log(error);
-          toast({
-            variant : 'destructive',
-            title : 'oopsie!',
-            description: 'unable to delete the agency and all the associated subaccounts!'
-          })
-        }
-        setDeletingAgency(false)
+      if (!data?.id) return
+      setDeletingAgency(true)
+      //WIP: discontinue the subscription
+      try {
+        const response = await deleteAgency(data.id)
+        toast({
+          title: 'Deleted Agency',
+          description: 'Deleted your agency and all subaccounts',
+        })
+        router.refresh()
+      } catch (error) {
+        console.log(error)
+        toast({
+          variant: 'destructive',
+          title: 'Oppse!',
+          description: 'could not delete your agency ',
+        })
       }
+      setDeletingAgency(false)
     }
-
+  
   
 
     return (
