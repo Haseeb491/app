@@ -292,43 +292,43 @@ export const getNotificationAndUser = async (agencyId : string)=>{
         createdAt : 'desc',
       },
     })
+    return response
   } catch (error) {
     console.log(error)
   }
 }
 
-export const upsertSubAccount = async (subAccount : SubAccount) =>{
-  if(!subAccount.companyEmail) return null
-  const agencyOwner  = await db.user.findFirst({
-    where : {
-      Agency : {
-        id : subAccount.agencyId,
+export const upsertSubAccount = async (subAccount: SubAccount) => {
+  if (!subAccount.companyEmail) return null
+  const agencyOwner = await db.user.findFirst({
+    where: {
+      Agency: {
+        id: subAccount.agencyId,
       },
-      role : 'AGENCY_OWNER',
+      role: 'AGENCY_OWNER',
     },
   })
-  if(!agencyOwner) return console.log('Error could not create subaccount')
-  const permissionId = v4();
+  console.log(agencyOwner)
+  if (!agencyOwner) return console.log('🔴Erorr could not create subaccount')
+  const permissionId = v4()
   const response = await db.subAccount.upsert({
-    where : {
-      id : subAccount.id
-    },
-    update : subAccount,
-    create : {
+    where: { id: subAccount.id },
+    update: subAccount,
+    create: {
       ...subAccount,
-      Permissions : {
-        create : {
-          access : true,
-          email : agencyOwner.email,
-          id : permissionId,
+      Permissions: {
+        create: {
+          access: true,
+          email: agencyOwner.email,
+          id: permissionId,
         },
-        connect : {
-          subAccountId : subAccount.id,
-          id : permissionId,
+        connect: {
+          subAccountId: subAccount.id,
+          id: permissionId,
         },
       },
-      Pipeline : {
-        create : { name : 'lead cycle' },
+      Pipeline: {
+        create: { name: 'Lead Cycle' },
       },
       SidebarOption: {
         create: [
@@ -376,6 +376,31 @@ export const upsertSubAccount = async (subAccount : SubAccount) =>{
       },
     },
   })
+  console.log(response)
+  return response
+}
+
+export const getUserPermissions = async (userId: string) => {
+  const response = await db.user.findUnique({
+    where: { id: userId },
+    select: { Permissions: { include: { SubAccount: true } } },
+  })
+
+  return response
+}
+
+export const updateUser = async (user: Partial<User>) => {
+  const response = await db.user.update({
+    where: { email: user.email },
+    data: { ...user },
+  })
+
+  await clerkClient.users.updateUserMetadata(response.id, {
+    privateMetadata: {
+      role: user.role || 'SUBACCOUNT_USER',
+    },
+  })
+
   return response
 }
 
